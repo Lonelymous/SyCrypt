@@ -1,2 +1,2 @@
 # SyCrypt
- Golang salt, hash password package
+ Golang dynamic salt encryption library for passwords.
