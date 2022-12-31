@@ -2,6 +2,7 @@ package sycrypt
 
 import (
 	"crypto/sha256"
+	"fmt"
 	"math/rand"
 	"time"
 )
@@ -59,8 +60,7 @@ func SaltAndHashPassword(password, salt string) string {
 
 // Hash password and return with the value
 func HashPassword(pwd string) string {
-	hash := sha256.Sum256([]byte(pwd))
-	return string(hash[:])
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(pwd)))
 }
 
 // Verify password with the hash
