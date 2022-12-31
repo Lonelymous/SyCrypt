@@ -1,10 +1,9 @@
 package sycrypt
 
 import (
+	"crypto/sha256"
 	"math/rand"
 	"time"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 func init() {
@@ -13,6 +12,7 @@ func init() {
 
 var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 
+// RandomString returns a random string with the length of n
 func RandomString(n int) string {
 	b := make([]rune, n)
 	for i := range b {
@@ -21,6 +21,7 @@ func RandomString(n int) string {
 	return string(b)
 }
 
+// Salt password and return with salted password and salt
 func DynamicSaltPassword(password string) (string, string) {
 	halfPassword := len(password) / 2
 	if len(password)%2 != 0 {
@@ -31,12 +32,14 @@ func DynamicSaltPassword(password string) (string, string) {
 	return saltedPassword, randomSalt
 }
 
+// Salt password and hash it and return with hash and salt
 func DynamicSaltAndHashPassword(password string) (string, string) {
 	saltedPassword, salt := DynamicSaltPassword(password)
 	return HashPassword(saltedPassword), salt
 }
 
-func SaltPassword(password string, salt string) string {
+// Salt password with the salt and return with the value
+func SaltPassword(password, salt string) string {
 	saltedPassword := ""
 	saltIndex := 0
 	for passwordIndex := 0; passwordIndex < len(password); passwordIndex++ {
@@ -49,22 +52,28 @@ func SaltPassword(password string, salt string) string {
 	return saltedPassword
 }
 
-func SaltAndHashPassword(password string, salt string) string {
+// Salt password and hash it and return with the value
+func SaltAndHashPassword(password, salt string) string {
 	return HashPassword(SaltPassword(password, salt))
 }
 
+// Hash password and return with the value
 func HashPassword(pwd string) string {
-	hash, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.MinCost)
-	if err != nil {
-		return ""
-	}
-	return string(hash)
+	hash := sha256.Sum256([]byte(pwd))
+	return string(hash[:])
 }
 
-func VerifyPassword(password string, salt string, hash string) bool {
-	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(SaltPassword(password, salt))) == nil
+// Verify password with the hash
+func VerifyPassword2Hash(hash, password, salt string) bool {
+	return hash == SaltAndHashPassword(password, salt)
 }
 
-func VerifySaltedPassword(saltedPassword string, hash string) bool {
-	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(saltedPassword)) == nil
+// Verify salted password with the hash
+func VerifySaltedPassword2Hash(hash, saltedPassword string) bool {
+	return hash == HashPassword(saltedPassword)
+}
+
+// Verify hashed password with the hash
+func VerifyHash2Hash(hash, hashedPassword string) bool {
+	return hash == hashedPassword
 }
