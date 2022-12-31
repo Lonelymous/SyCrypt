@@ -31,6 +31,11 @@ func DynamicSaltPassword(password string) (string, string) {
 	return saltedPassword, randomSalt
 }
 
+func DynamicSaltAndHashPassword(password string) (string, string) {
+	saltedPassword, salt := DynamicSaltPassword(password)
+	return HashPassword(saltedPassword), salt
+}
+
 func SaltPassword(password string, salt string) string {
 	saltedPassword := ""
 	saltIndex := 0
@@ -42,6 +47,10 @@ func SaltPassword(password string, salt string) string {
 		saltedPassword += string(password[passwordIndex])
 	}
 	return saltedPassword
+}
+
+func SaltAndHashPassword(password string, salt string) string {
+	return HashPassword(SaltPassword(password, salt))
 }
 
 func HashPassword(pwd string) string {
