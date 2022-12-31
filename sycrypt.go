@@ -2,9 +2,14 @@ package sycrypt
 
 import (
 	"math/rand"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
 
 var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 
