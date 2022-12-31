@@ -17,7 +17,11 @@ func RandomString(n int) string {
 }
 
 func DynamicSaltPassword(password string) (string, string) {
-	randomSalt := RandomString(len(password) / 2)
+	halfPassword := len(password) / 2
+	if len(password)%2 != 0 {
+		halfPassword += 1
+	}
+	randomSalt := RandomString(halfPassword)
 	saltedPassword := SaltPassword(password, randomSalt)
 	return saltedPassword, randomSalt
 }
