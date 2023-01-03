@@ -22,7 +22,7 @@ func RandomString(n int) string {
 	return string(b)
 }
 
-// Salt password and return with salted password and salt
+// Salt password with a dynamic length salt and return salted password with salt
 func DynamicSaltPassword(password string) (string, string) {
 	halfPassword := len(password) / 2
 	if len(password)%2 != 0 {
@@ -33,9 +33,26 @@ func DynamicSaltPassword(password string) (string, string) {
 	return saltedPassword, randomSalt
 }
 
-// Salt password and hash it and return with hash and salt
+// Salt password with a dynamic length salt and hash it and return hash with salt
 func DynamicSaltAndHashPassword(password string) (string, string) {
 	saltedPassword, salt := DynamicSaltPassword(password)
+	return HashPassword(saltedPassword), salt
+}
+
+// Salt password with a fixed length salt and return salted password with salt
+func StaticSaltPassword(password string, saltLength int) (string, string) {
+	halfPassword := len(password) / 2
+	if len(password)%2 != 0 {
+		halfPassword += 1
+	}
+	randomSalt := RandomString(saltLength)
+	saltedPassword := SaltPassword(password, randomSalt)
+	return saltedPassword, randomSalt
+}
+
+// Salt password with a fixed length salt and hash it and return hash with salt
+func StaticSaltAndHashPassword(password string, saltLength int) (string, string) {
+	saltedPassword, salt := StaticSaltPassword(password, saltLength)
 	return HashPassword(saltedPassword), salt
 }
 
