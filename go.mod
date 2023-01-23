@@ -1,3 +1,3 @@
-module github.com/Lonelymous/SyCrypt
+module github.com/lonelymous/sycrypt
 
 go 1.19
