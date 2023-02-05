@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"math/rand"
+	"strings"
 	"time"
 )
 
@@ -95,46 +96,36 @@ func VerifyHash2Hash(hash, hashedPassword string) bool {
 	return hash == hashedPassword
 }
 
-func encrypt(a, b byte) byte {
-	// c := a + b
-	// return (c * c) >> 1
-	return a << 1
+func encode(a, b, c byte) byte {
+	a = a * 2
+	a = a >> 1
+	a = a + b
+	a = a - c
+	return a
 }
 
-func decrypt(a, b byte) byte {
-	// c := a << 1
-	// return c/c - b
-	return a >> 1
+func decode(a, b, c byte) byte {
+	a = a + c
+	a = a - b
+	a = a << 1
+	a = a / 2
+	return a
 }
 
-func magic(a byte) byte {
-	return (a + 64) % 128
-}
-
-func CryptPassword(password string) string {
-	p := ""
+func Encode(password, secretKey string) string {
+	encodedPassword := ""
+	secretKey = strings.ToUpper(secretKey)
 	for passwordIndex := 0; passwordIndex < len(password); passwordIndex++ {
-		p += string(magic(password[passwordIndex]))
+		encodedPassword += string(encode(password[passwordIndex], secretKey[passwordIndex%len(secretKey)], byte(64-passwordIndex)))
 	}
-	return p
+	return encodedPassword
 }
 
-func EncryptPassword(password, secretKey string) string {
-	encryptedPassword := ""
-	for passwordIndex := 0; passwordIndex < len(password); passwordIndex++ {
-		secretKeyIndex := secretKey[passwordIndex%len(secretKey)]
-		byt := encrypt(password[passwordIndex], secretKeyIndex)
-		encryptedPassword += string(byt)
+func Decode(encodedPassword, secretKey string) string {
+	decodedpassword := ""
+	secretKey = strings.ToUpper(secretKey)
+	for encodedPasswordIndex := 0; encodedPasswordIndex < len(encodedPassword); encodedPasswordIndex++ {
+		decodedpassword += string(decode(encodedPassword[encodedPasswordIndex], secretKey[encodedPasswordIndex%len(secretKey)], byte(64-encodedPasswordIndex)))
 	}
-	return encryptedPassword
-}
-
-func DecryptPassword(decryptedPassword, secretKey string) string {
-	password := ""
-	for decryptedPasswordIndex := 0; decryptedPasswordIndex < len(decryptedPassword); decryptedPasswordIndex++ {
-		secretKeyIndex := secretKey[decryptedPasswordIndex%len(secretKey)]
-		byt := decrypt(decryptedPassword[decryptedPasswordIndex], secretKeyIndex)
-		password += string(byt)
-	}
-	return password
+	return decodedpassword
 }
