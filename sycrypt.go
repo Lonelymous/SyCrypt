@@ -17,13 +17,13 @@ func init() {
 	mathrand.Seed(time.Now().UnixNano())
 }
 
-var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+var chars = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 
 // RandomString returns a random string with the length of n
-func RandomString(n int) string {
-	b := make([]rune, n)
+func RandomString(length int) string {
+	b := make([]rune, length)
 	for i := range b {
-		b[i] = letterRunes[mathrand.Intn(len(letterRunes))]
+		b[i] = chars[mathrand.Intn(len(chars))]
 	}
 	return string(b)
 }
