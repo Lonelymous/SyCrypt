@@ -1,15 +1,20 @@
 package sycrypt
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
 	"crypto/sha256"
+	"crypto/sha512"
 	"fmt"
-	"math/rand"
-	"strings"
+	mathrand "math/rand"
+	"os"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 func init() {
-	rand.Seed(time.Now().UnixNano())
+	mathrand.Seed(time.Now().UnixNano())
 }
 
 var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
@@ -18,7 +23,7 @@ var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01
 func RandomString(n int) string {
 	b := make([]rune, n)
 	for i := range b {
-		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+		b[i] = letterRunes[mathrand.Intn(len(letterRunes))]
 	}
 	return string(b)
 }
@@ -96,36 +101,48 @@ func VerifyHash2Hash(hash, hashedPassword string) bool {
 	return hash == hashedPassword
 }
 
-func encode(a, b, c byte) byte {
-	a = a * 2
-	a = a >> 1
-	a = a + b
-	a = a - c
-	return a
+// Create Globally Unique Identifier (GUID)
+func CreateGUID() string {
+	return uuid.New().String()
 }
 
-func decode(a, b, c byte) byte {
-	a = a + c
-	a = a - b
-	a = a << 1
-	a = a / 2
-	return a
+// Create Hash by GUID
+func CreateRandomHash() string {
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(CreateGUID())))
 }
 
-func Encode(password, secretKey string) string {
-	encodedPassword := ""
-	secretKey = strings.ToUpper(secretKey)
-	for passwordIndex := 0; passwordIndex < len(password); passwordIndex++ {
-		encodedPassword += string(encode(password[passwordIndex], secretKey[passwordIndex%len(secretKey)], byte(64-passwordIndex)))
+// Create Hash by data
+func CreateHash(data string) string {
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(data)))
+}
+
+// Create Public Key by Random Hash
+func CreateAsymmetricKeyPair() (*rsa.PrivateKey, *rsa.PublicKey) {
+	// generate key
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		fmt.Printf("Cannot generate RSA key\n")
+		os.Exit(1)
 	}
-	return encodedPassword
+	return privateKey, &privateKey.PublicKey
 }
 
-func Decode(encodedPassword, secretKey string) string {
-	decodedpassword := ""
-	secretKey = strings.ToUpper(secretKey)
-	for encodedPasswordIndex := 0; encodedPasswordIndex < len(encodedPassword); encodedPasswordIndex++ {
-		decodedpassword += string(decode(encodedPassword[encodedPasswordIndex], secretKey[encodedPasswordIndex%len(secretKey)], byte(64-encodedPasswordIndex)))
+// EncryptWithPublicKey encrypts data with public key
+func EncryptWithPublicKey(text []byte, publicKey *rsa.PublicKey) []byte {
+	hash := sha512.New()
+	encodedText, err := rsa.EncryptOAEP(hash, rand.Reader, publicKey, text, nil)
+	if err != nil {
+		fmt.Println("Error from encryption: ", err.Error())
 	}
-	return decodedpassword
+	return encodedText
+}
+
+// DecryptWithPrivateKey decrypts data with private key
+func DecryptWithPrivateKey(encodedText []byte, privateKey *rsa.PrivateKey) []byte {
+	hash := sha512.New()
+	decodedText, err := rsa.DecryptOAEP(hash, rand.Reader, privateKey, encodedText, nil)
+	if err != nil {
+		fmt.Println("Error from decryption: ", err.Error())
+	}
+	return decodedText
 }
